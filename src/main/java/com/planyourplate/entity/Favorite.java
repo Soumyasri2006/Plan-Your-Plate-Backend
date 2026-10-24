@@ -1,3 +1,4 @@
+
 package com.planyourplate.entity;
 
 import jakarta.persistence.*;
@@ -12,6 +13,10 @@ public class Favorite {
     @ManyToOne
     @JoinColumn(name = "recipe_id")
     private Recipe recipe;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public Favorite() {
     }
@@ -30,5 +35,13 @@ public class Favorite {
 
     public void setRecipe(Recipe recipe) {
         this.recipe = recipe;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

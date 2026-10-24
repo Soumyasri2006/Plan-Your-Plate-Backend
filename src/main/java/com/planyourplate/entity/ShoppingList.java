@@ -1,3 +1,4 @@
+
 package com.planyourplate.entity;
 
 import jakarta.persistence.*;
@@ -14,6 +15,10 @@ public class ShoppingList {
     private double quantity;
 
     private String unit;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public ShoppingList() {
     }
@@ -49,4 +54,13 @@ public class ShoppingList {
     public void setUnit(String unit) {
         this.unit = unit;
     }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
+

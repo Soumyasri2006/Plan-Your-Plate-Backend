@@ -1,3 +1,4 @@
+
 package com.planyourplate.controller;
 
 import com.planyourplate.dto.NutritionResponse;
@@ -6,6 +7,7 @@ import com.planyourplate.repository.RecipeIngredientRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/nutrition")
@@ -25,7 +27,8 @@ public class NutritionController {
         List<RecipeIngredient> ingredients =
                 recipeIngredientRepository.findAll()
                         .stream()
-                        .filter(ri -> ri.getRecipe().getId().equals(recipeId))
+                        .filter(ri ->
+                                ri.getRecipe().getId().equals(recipeId))
                         .toList();
 
         double calories = 0;
@@ -34,27 +37,58 @@ public class NutritionController {
         double fat = 0;
         double fiber = 0;
 
-        for (RecipeIngredient ri : ingredients) {
+        
+for (RecipeIngredient ri : ingredients) {
 
-            double quantity = ri.getQuantity();
+    double quantity = ri.getQuantity();
+    String unit = ri.getUnit();
 
-            calories += ri.getIngredient().getCalories() * quantity / 100;
-            protein += ri.getIngredient().getProtein() * quantity / 100;
-            carbohydrates += ri.getIngredient().getCarbohydrates() * quantity / 100;
-            fat += ri.getIngredient().getFat() * quantity / 100;
-            fiber += ri.getIngredient().getFiber() * quantity / 100;
-        }
+    // Convert ingredient quantity into grams.
+    double quantityInGrams;
 
-        int servings = ingredients.isEmpty()
-                ? 1
-                : ingredients.get(0).getRecipe().getServings();
+    if (unit != null &&
+            (unit.equalsIgnoreCase("g")
+                    || unit.equalsIgnoreCase("grams"))) {
 
-        return new NutritionResponse(
-                calories / servings,
-                protein / servings,
-                carbohydrates / servings,
-                fat / servings,
-                fiber / servings
-        );
+        quantityInGrams = quantity;
+
+    } else if (unit != null &&
+            unit.equalsIgnoreCase("pieces")
+            && ri.getIngredient().getName()
+                    .equalsIgnoreCase("Egg")) {
+
+        // Estimate one egg as 50 grams.
+        quantityInGrams = quantity * 50;
+
+    } else {
+        throw new IllegalArgumentException(
+                "Unsupported ingredient unit: " + unit);
+    }
+
+    double multiplier = quantityInGrams / 100.0;
+
+    calories += ri.getIngredient().getCalories() * multiplier;
+    protein += ri.getIngredient().getProtein() * multiplier;
+    carbohydrates +=
+            ri.getIngredient().getCarbohydrates() * multiplier;
+    fat += ri.getIngredient().getFat() * multiplier;
+    fiber += ri.getIngredient().getFiber() * multiplier;
+}
+
+    
+        
+
+int servings = ingredients.isEmpty()
+        ? 1
+        : ingredients.get(0).getRecipe().getServings();
+
+return new NutritionResponse(
+        calories / servings,
+        protein / servings,
+        carbohydrates / servings,
+        fat / servings,
+        fiber / servings
+);
+
     }
 }
