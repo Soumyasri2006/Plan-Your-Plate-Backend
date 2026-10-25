@@ -1,4 +1,3 @@
-
 package com.planyourplate.config;
 
 import com.planyourplate.security.JwtAuthenticationFilter;
@@ -8,6 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Configuration
 public class SecurityConfig {
@@ -19,48 +21,53 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
 
         http
-                
-.csrf(csrf -> csrf.disable())
-.cors(cors -> cors.configurationSource(request -> {
-    org.springframework.web.cors.CorsConfiguration config =
-            new org.springframework.web.cors.CorsConfiguration();
+            .csrf(csrf -> csrf.disable())
 
-    config.setAllowedOrigins(
-            java.util.List.of("http://localhost:5173")
-    );
+            .cors(cors -> cors.configurationSource(request -> {
+                CorsConfiguration config = new CorsConfiguration();
 
-    config.setAllowedMethods(
-            java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
-    );
+                config.setAllowedOriginPatterns(List.of(
+                    "http://localhost:5173",
+                    "http://localhost:3000",
+                    "https://*.vercel.app"
+                ));
 
-    config.setAllowedHeaders(
-            java.util.List.of("Authorization", "Content-Type")
-    );
+                config.setAllowedMethods(List.of(
+                    "GET", "POST", "PUT", "DELETE", "OPTIONS"
+                ));
 
-    return config;
-}))
+                config.setAllowedHeaders(List.of(
+                    "Authorization", "Content-Type"
+                ));
 
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/ingredients",
-                                "/api/recipes/**",
-                                "/api/recipe-ingredients",
-                                "/api/recommendations",
-                                "/api/nutrition/**",
-                                "/api/auth/register",
-                                "/api/auth/login"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
-                .addFilterBefore(
-                        jwtAuthenticationFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                return config;
+            }))
+
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/",
+                    "/api/ingredients",
+                    "/api/recipes/**",
+                    "/api/recipe-ingredients",
+                    "/api/recommendations",
+                    "/api/nutrition/**",
+                    "/api/auth/register",
+                    "/api/auth/login"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
 
         return http.build();
     }
